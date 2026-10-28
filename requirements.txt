@@ -12,3 +12,8 @@ joblib
 pandas
 >>>>>>> 078aa1dc5971a7c1cb6a95a67d4cdbb56c56fdb2
 scikt-learn
+fastapi
+uvicorn
+torch
+transformers
+jinja2
