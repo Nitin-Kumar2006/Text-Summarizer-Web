@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #fast api
 from fastapi import FastAPI,Request
 from pydantic import BaseModel
@@ -68,3 +69,75 @@ async def summarize(dialogue_input:DialogueInput):
 @app.get("/",response_class = HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse(request=request,name = "index.html")
+=======
+#fast api
+from fastapi import FastAPI,Request
+from pydantic import BaseModel
+# pydantic a python library use to validate data like string to string hona chahiye
+from transformers import T5ForConditionalGeneration,T5Tokenizer
+import torch
+# re =>regular expression 
+import re
+from fastapi.templating import Jinja2Templates #UI ko show krane and jinja2 for if we want ro create multiple pages 
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+
+#initialize our fastapi app
+app = FastAPI(title="Text Summarizer App",description="Text Summarization using T5",version="1.0")
+#load model & tokenizer
+model = T5ForConditionalGeneration.from_pretrained("./saved_summary_model")
+tokenizer = T5Tokenizer.from_pretrained("./saved_summary_model")
+
+# device
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
+model.to(device)
+#html code kha exist krata hat templating me btaenge
+templates = Jinja2Templates(directory=".") # "." means html dile bhi isi folder me present hai
+
+# input schema(format) means string type in model by pydantic 
+class DialogueInput(BaseModel):
+    dialogue : str
+
+def clean_data(text):
+  text = re.sub(r"\r\n"," ",text)
+  text = re.sub(r"\s+"," ",text)
+  text = re.sub(r"<.*?>"," ",text)
+  text = re.sub(r"http\S+"," ",text)
+  text = text.strip().lower()
+  return text
+
+def summarize_model(dialogue : str)->str:
+  dialogue = clean_data(dialogue)
+  inputs = tokenizer(
+      dialogue,
+      padding = "max_length",
+      max_length = 512,
+      truncation = True,
+      return_tensors = "pt"
+  ).to(device)
+  model.to(device)
+  targets = model.generate(
+      input_ids = inputs["input_ids"],
+      attention_mask = inputs["attention_mask"],
+      max_length = 150,
+      num_beams = 4,
+      early_stopping = True
+  )
+  summary = tokenizer.decode(targets[0],skip_special_tokens=True)
+  return summary
+#API Endpoints
+#asynchronous ->kam bina sequence ke bhi ho skte hai agr first process me tome lgta hai to
+@app.post("/summarize/")
+async def summarize(dialogue_input:DialogueInput):
+    summary = summarize_model(dialogue_input.dialogue)
+    return {"summary":summary}
+
+@app.get("/",response_class = HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse(request=request,name = "index.html")
+>>>>>>> 078aa1dc5971a7c1cb6a95a67d4cdbb56c56fdb2
