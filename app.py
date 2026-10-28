@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #fast api
 from fastapi import FastAPI,Request
 from pydantic import BaseModel
@@ -69,7 +68,6 @@ async def summarize(dialogue_input:DialogueInput):
 @app.get("/",response_class = HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse(request=request,name = "index.html")
-=======
 #fast api
 from fastapi import FastAPI,Request
 from pydantic import BaseModel
@@ -140,4 +138,3 @@ async def summarize(dialogue_input:DialogueInput):
 @app.get("/",response_class = HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse(request=request,name = "index.html")
->>>>>>> 078aa1dc5971a7c1cb6a95a67d4cdbb56c56fdb2
